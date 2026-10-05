@@ -1,0 +1,16 @@
+# Requirements for Magnet Array Optimization
+# GPU-accelerated simulated annealing for permanent magnet design
+
+# Core scientific computing
+numpy>=1.20.0
+scipy>=1.7.0
+
+# GPU acceleration (requires CUDA)
+cupy-cuda12x>=12.0.0  # Adjust cuda version: cupy-cuda11x for CUDA 11
+
+# Visualization
+matplotlib>=3.5.0
+plotly>=5.0.0
+
+# Timing utilities
+pytictoc>=1.5.0

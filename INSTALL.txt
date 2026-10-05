@@ -1,0 +1,111 @@
+================================================================================
+MAGNET ARRAY OPTIMIZATION - INSTALLATION GUIDE
+================================================================================
+
+This project contains GPU-accelerated simulated annealing optimization for
+permanent magnet array design. Two geometry types are supported:
+  - Elliptical cylinder (ellipse_opt package)
+  - Cylindrical octant (cylindrical_opt package)
+
+--------------------------------------------------------------------------------
+SYSTEM REQUIREMENTS
+--------------------------------------------------------------------------------
+
+1. Python 3.9 or higher
+2. NVIDIA GPU with CUDA support
+3. CUDA Toolkit 11.x or 12.x installed
+
+--------------------------------------------------------------------------------
+REQUIRED PACKAGES
+--------------------------------------------------------------------------------
+
+Package         Version     Purpose
+-----------     -------     -----------------------------------------------
+numpy           >=1.20      Array operations, data handling
+cupy            >=12.0      GPU-accelerated computing (replaces numpy on GPU)
+scipy           >=1.7       Optimization routines (brentq for calibration)
+matplotlib      >=3.5       2D plotting, cost progression visualization
+plotly          >=5.0       3D interactive visualization of magnet positions
+pytictoc        >=1.5       Timing/profiling optimization loops
+
+--------------------------------------------------------------------------------
+INSTALLATION
+--------------------------------------------------------------------------------
+
+Option 1: Install from requirements.txt
+    pip install -r requirements.txt
+
+Option 2: Install packages individually
+    pip install numpy scipy matplotlib plotly pytictoc
+
+    # For CUDA 12.x:
+    pip install cupy-cuda12x
+
+    # For CUDA 11.x:
+    pip install cupy-cuda11x
+
+Option 3: Using conda
+    conda install numpy scipy matplotlib plotly
+    pip install cupy-cuda12x pytictoc
+
+--------------------------------------------------------------------------------
+VERIFY INSTALLATION
+--------------------------------------------------------------------------------
+
+Run the check script to verify all dependencies are installed:
+
+    python check_dependencies.py
+
+Or run this quick test in Python:
+
+    import numpy as np
+    import cupy as cp
+    import scipy
+    import matplotlib
+    import plotly
+    from pytictoc import TicToc
+
+    # Test GPU
+    x = cp.array([1, 2, 3])
+    print(f"CuPy GPU test: {x}")
+    print("All dependencies installed correctly!")
+
+--------------------------------------------------------------------------------
+PRECOMPUTED FIELD DATA
+--------------------------------------------------------------------------------
+
+The optimization requires a precomputed magnetic field lookup table:
+    Precalc_field_450mm_grid_1mm_step_Br1.48_demag0.9836_20260701_220818.npz
+
+This file contains:
+    - Bxyzvalue: Precomputed B-field components
+    - Ref_grid: Reference grid coordinates
+    - step_size: Grid resolution (1mm)
+
+Place this file in the mag_opt directory before running optimization.
+
+--------------------------------------------------------------------------------
+USAGE
+--------------------------------------------------------------------------------
+
+Elliptical optimization:
+    jupyter notebook ellipse_optimization_usage.ipynb
+
+Cylindrical optimization:
+    jupyter notebook cylindrical_optimization_usage.ipynb
+
+--------------------------------------------------------------------------------
+TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+1. "No module named 'cupy'"
+   -> Install cupy with correct CUDA version: pip install cupy-cuda12x
+
+2. "CUDA out of memory"
+   -> Reduce n_magnets or n_sample_points
+   -> Clear GPU memory: cp.get_default_memory_pool().free_all_blocks()
+
+3. "Field lookup out of bounds"
+   -> Check that magnet positions are within the precomputed grid range
+
+================================================================================

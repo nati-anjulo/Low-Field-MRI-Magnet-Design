@@ -1,0 +1,126 @@
+================================================================================
+PRECOMPUTED MAGNETIC FIELD - README
+================================================================================
+
+File:           Precalc_field_450mm_grid_1mm_step_Br1.48_demag0.9836_20260701_220818.npz
+Generated:      2026-07-01 22:08:56
+Computation:    65.9 seconds (1.1 minutes)
+Batch Size:     100,000 points per batch
+File Size:      1.44 GB
+
+================================================================================
+MATERIAL PROPERTIES
+================================================================================
+Material Grade                  N52 NdFeB
+Remanence (Br)                  1.48 T
+Demagnetization Factor          0.9836
+Effective Magnetization         1.455728 T
+
+IMPORTANT: The field is ALREADY scaled by the demagnetization factor.
+           DO NOT multiply by demag_factor again when loading!
+
+================================================================================
+MAGNET GEOMETRY
+================================================================================
+Size                            6.35 mm (0.00635 m)
+Shape                           Cubic
+Polarization Direction          +Y axis (0, 1, 0)
+Polarization Magnitude          1.455728 T
+Position                        Origin (0, 0, 0)
+
+================================================================================
+GRID PARAMETERS
+================================================================================
+Range                           ±225 mm (±0.225 m)
+Total Span                      450 mm
+Step Size                       1.0 mm (0.001 m)
+Grid Dimensions                 450 × 450 × 450
+Total Points                    91,125,000
+
+================================================================================
+FIELD STATISTICS
+================================================================================
+Mean Magnitude                  0.000027 T (0.0270 mT)
+Max Magnitude                   1.220973 T (1220.97 mT)
+Min Magnitude                   0.000001 T (0.000709 mT)
+Std Deviation                   0.002185 T (2.1847 mT)
+
+================================================================================
+ARRAYS IN FILE
+================================================================================
+Bxyzvalue                       Magnetic field vectors (N×3) [Tesla]
+Ref_grid                        Reference X-coordinate grid
+Grid_dim                        1D array of grid coordinates [meters]
+step_size                       Grid spacing [meters]
+Br                              Original remanence [Tesla]
+demag_factor                    Demagnetization correction factor
+effective_magnetization         Br × demag_factor [Tesla]
+magnet_size_m                   Magnet size [meters]
+grid_range_m                    Grid half-range [meters]
+computation_time_seconds        Time to compute field
+batch_size                      Points per batch during computation
+timestamp                       Generation timestamp
+field_magnitude_mean            Mean field magnitude [Tesla]
+field_magnitude_max             Max field magnitude [Tesla]
+field_magnitude_std             Std of field magnitude [Tesla]
+
+================================================================================
+USAGE INSTRUCTIONS
+================================================================================
+
+1. Load the precomputed field:
+
+   import numpy as np
+   B = np.load('Precalc_field_450mm_grid_1mm_step_Br1.48_demag0.9836_20260701_220818.npz')
+   
+   Precalc_Bxyz_value = B['Bxyzvalue']
+   Ref_grid = B['Ref_grid']
+   Grid_dim = B['Grid_dim']
+   step_size = B['step_size']
+
+2. CRITICAL - DO NOT apply demagnetization correction again:
+
+   ✅ CORRECT (load as-is):
+   field = B['Bxyzvalue'].astype(np.float32)
+   
+   ❌ WRONG (double correction):
+   field = (B['Bxyzvalue'] * demag_factor).astype(np.float32)  # DON'T DO THIS!
+
+3. The field is already at the correct magnetization:
+   1.455728 T = 1.48 T × 0.9836
+
+4. To scale to a different magnetization:
+   new_field = field * (new_magnetization / 1.455728)
+   
+   Example for Br = 1.2 T with same demag:
+   new_mag = 1.2 * 0.9836
+   scaled_field = field * (new_mag / 1.455728)
+
+5. Convert to float32 to save GPU memory (minimal precision loss):
+   field_float32 = B['Bxyzvalue'].astype(np.float32)
+   # Saves 50% memory on GPU!
+
+================================================================================
+VERIFICATION
+================================================================================
+
+To verify this file is loaded correctly, check that:
+
+1. Max field magnitude is 1220.97 mT
+2. Mean field magnitude is 0.0270 mT
+3. Metadata 'effective_magnetization' = 1.455728 T
+
+If your loaded max field is significantly different, you may have
+accidentally applied demag_factor twice (or not at all).
+
+================================================================================
+GENERATION INFO
+================================================================================
+Generated by:   Generate_Precomputed_Field_Batched.ipynb
+Magpylib:       5.1.1
+NumPy:          1.26.4
+Python:         3.x
+Method:         Batched computation (100,000 points/batch)
+Total time:     1.1 minutes
+Average rate:   1,382,168 points/second
+================================================================================
