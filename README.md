@@ -26,6 +26,7 @@ GPU-accelerated simulated annealing for permanent magnet array design.
 | `ellipse_opt` | Elliptical cylinder | User-defined elliptical bore (rx, ry, gap, z_max) |
 | `cylindrical_opt` | Cylindrical octant | User-defined cylindrical bounds (r_min, r_max, z_min, z_max) |
 | `field_calculator.py` | **Core** | GPU precompute lookup - loads Precalc_field_*.npz for fast field interpolation |
+| `field_validation.py` | **Validation** | Magpylib-based validation (overlay comparison plots) |
 | `analytical_magnet_gpu.py` | Field calculation | GPU analytical cuboid field (Engel-Herbert) |
 | `analytical_field.py` | Field calculation | CPU analytical cuboid field |
 
@@ -67,7 +68,8 @@ Magnet_design/
 │       └── generator.py
 │
 ├── Core Modules
-│   └── field_calculator.py             # GPU precompute lookup (loads Precalc_field_*.npz)
+│   ├── field_calculator.py             # GPU precompute lookup (loads Precalc_field_*.npz)
+│   └── field_validation.py             # Magpylib-based validation (overlay comparison plots)
 │
 ├── precompute/                         # Field generation
 │   ├── Generate_Precomputed_Field_Batched_analytical.ipynb
