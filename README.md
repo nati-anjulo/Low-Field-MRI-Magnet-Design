@@ -2,43 +2,86 @@
 
 GPU-accelerated simulated annealing for permanent magnet array design.
 
+## Workflow
+
+```
+1. Generate Precomputed Field
+   ├── Generate_Precomputed_Field_Batched_analytical.ipynb  (GPU analytical - fast)
+   └── Output: Precalc_field_*.npz
+
+2. Run Optimization
+   ├── ellipse_optimization_usage.ipynb      (elliptical bore)
+   └── cylindrical_optimization_usage.ipynb  (cylindrical octant)
+
+3. Results
+   ├── Optimized magnet positions/orientations
+   ├── Field homogeneity metrics
+   └── 3D visualization
+```
+
 ## Packages
 
 | Package | Geometry | Description |
 |---------|----------|-------------|
 | `ellipse_opt` | Elliptical cylinder | User-defined elliptical bore (rx, ry, gap, z_max) |
 | `cylindrical_opt` | Cylindrical octant | User-defined cylindrical bounds (r_min, r_max, z_min, z_max) |
+| `analytical_magnet_gpu.py` | Field calculation | GPU-accelerated analytical cuboid field (Engel-Herbert) |
+| `analytical_field.py` | Field calculation | CPU analytical cuboid field |
 
 ## Notebooks
 
 | Notebook | Description |
 |----------|-------------|
-| `ellipse_optimization_usage.ipynb` | Run elliptical magnet array optimization with calibration and visualization |
-| `cylindrical_optimization_usage.ipynb` | Run cylindrical octant magnet array optimization with calibration and visualization |
-| `BenchMark/Generate_Precomputed_Field_Batched.ipynb` | Generate precomputed magnetic field lookup tables from magnet geometry |
-| `BenchMark/magpylib_vs_precompute.ipynb` | Compare magpylib direct calculation vs precomputed field lookup performance |
+| `ellipse_optimization_usage.ipynb` | Elliptical magnet array optimization |
+| `cylindrical_optimization_usage.ipynb` | Cylindrical octant optimization |
+| `Generate_Precomputed_Field_Batched_analytical.ipynb` | Generate precomputed field (GPU analytical) |
 
 ## Quick Start
 
-1. **Check dependencies**
-   ```bash
-   python check_dependencies.py
-   ```
+1. **Generate precomputed field** (if needed)
+   - Run `Generate_Precomputed_Field_Batched_analytical.ipynb`
+   - Adjust grid size and magnet parameters as needed
 
-2. **Install if needed**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Run optimization**
+2. **Run optimization**
    - Elliptical: `ellipse_optimization_usage.ipynb`
    - Cylindrical: `cylindrical_optimization_usage.ipynb`
 
+## File Structure
+
+```
+Magnet_design/
+│
+├── Optimization Packages
+│   ├── ellipse_opt/                    # Elliptical geometry
+│   │   ├── cost.py                     # Cost function
+│   │   ├── perturbation.py             # SA perturbation (3-phase hybrid)
+│   │   ├── calibration.py              # Ben-Ameur calibration
+│   │   └── generator.py                # Magnet placement
+│   │
+│   └── cylindrical_opt/                # Cylindrical geometry
+│       ├── cost.py
+│       ├── perturbation.py
+│       ├── calibration.py
+│       └── generator.py
+│
+├── Field Calculation
+│   ├── analytical_magnet_gpu.py        # GPU vectorized (CuPy)
+│   └── analytical_field.py             # CPU version (NumPy)
+│
+├── Usage Notebooks
+│   ├── ellipse_optimization_usage.ipynb
+│   ├── cylindrical_optimization_usage.ipynb
+│   └── Generate_Precomputed_Field_Batched_analytical.ipynb
+│
+└── Data
+    └── Precalc_field_*.npz             # Precomputed B-field lookup
+```
+
 ## Requirements
 
-- Python
+- Python 3.8+
 - NVIDIA GPU with CUDA
-- Sufficient GPU memory for your configuration
+- CuPy, NumPy, Matplotlib
 
 ## Key Features
 
@@ -46,30 +89,4 @@ GPU-accelerated simulated annealing for permanent magnet array design.
 - S-curve temperature scaling
 - Auto-calibration (Ben-Ameur method)
 - Bolt hole avoidance constraints
-- Layer-aware overlap checking
-
-## Precomputed Field Data
-
-The `.npz` file contains precomputed magnetic field lookup tables required for optimization.
-
-## File Structure
-
-```
-Magnet_design/
-├── ellipse_opt/                           # Elliptical geometry package
-├── cylindrical_opt/                       # Cylindrical geometry package
-├── BenchMark/                             # Performance benchmarks
-├── ellipse_optimization_usage.ipynb       # Elliptical optimization notebook
-├── cylindrical_optimization_usage.ipynb   # Cylindrical optimization notebook
-├── Precalc_field_*.npz                    # Precomputed B-field
-├── requirements.txt                       # Python dependencies
-├── check_dependencies.py                  # Dependency checker
-└── INSTALL.txt                            # Detailed installation guide
-```
-
-## Output
-
-- Optimized magnet configurations (positions + orientations)
-- Field strength and homogeneity metrics
-- Cost progression history
-- 3D visualization of magnet array
+- GPU-accelerated field calculation (matches magpylib exactly)
