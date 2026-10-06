@@ -6,7 +6,7 @@ GPU-accelerated simulated annealing for permanent magnet array design.
 
 ```
 1. Generate Precomputed Field
-   ├── Generate_Precomputed_Field_Batched_analytical.ipynb  (GPU analytical - fast)
+   ├── precompute/Generate_Precomputed_Field_Batched_analytical.ipynb
    └── Output: Precalc_field_*.npz
 
 2. Run Optimization
@@ -35,12 +35,12 @@ GPU-accelerated simulated annealing for permanent magnet array design.
 |----------|-------------|
 | `ellipse_optimization_usage.ipynb` | Elliptical magnet array optimization |
 | `cylindrical_optimization_usage.ipynb` | Cylindrical octant optimization |
-| `Generate_Precomputed_Field_Batched_analytical.ipynb` | Generate precomputed field (GPU analytical) |
+| `precompute/Generate_Precomputed_Field_Batched_analytical.ipynb` | Generate precomputed field (GPU analytical) |
 
 ## Quick Start
 
 1. **Generate precomputed field** (if needed)
-   - Run `Generate_Precomputed_Field_Batched_analytical.ipynb`
+   - Run `precompute/Generate_Precomputed_Field_Batched_analytical.ipynb`
    - Adjust grid size and magnet parameters as needed
 
 2. **Run optimization**
@@ -66,14 +66,16 @@ Magnet_design/
 │       └── generator.py
 │
 ├── Core Modules
-│   ├── field_calculator.py             # GPU precompute lookup (loads Precalc_field_*.npz)
+│   └── field_calculator.py             # GPU precompute lookup (loads Precalc_field_*.npz)
+│
+├── precompute/                         # Field generation
+│   ├── Generate_Precomputed_Field_Batched_analytical.ipynb
 │   ├── analytical_magnet_gpu.py        # GPU analytical (CuPy)
 │   └── analytical_field.py             # CPU analytical (NumPy)
 │
-├── Usage Notebooks
+├── Example Usage Notebooks
 │   ├── ellipse_optimization_usage.ipynb
-│   ├── cylindrical_optimization_usage.ipynb
-│   └── Generate_Precomputed_Field_Batched_analytical.ipynb
+│   └── cylindrical_optimization_usage.ipynb
 │
 └── Data
     └── Precalc_field_*.npz             # Precomputed B-field lookup
