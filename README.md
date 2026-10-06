@@ -35,6 +35,7 @@ GPU-accelerated simulated annealing for permanent magnet array design.
 |----------|-------------|
 | `ellipse_optimization_usage.ipynb` | Elliptical magnet array optimization |
 | `cylindrical_optimization_usage.ipynb` | Cylindrical octant optimization |
+| `visualize_checkpoint.ipynb` | Load and visualize saved checkpoints |
 | `precompute/Generate_Precomputed_Field_Batched_analytical.ipynb` | Generate precomputed field (GPU analytical) |
 
 ## Quick Start
@@ -75,7 +76,8 @@ Magnet_design/
 │
 ├── Example Usage Notebooks
 │   ├── ellipse_optimization_usage.ipynb
-│   └── cylindrical_optimization_usage.ipynb
+│   ├── cylindrical_optimization_usage.ipynb
+│   └── visualize_checkpoint.ipynb
 │
 └── Data
     └── Precalc_field_*.npz             # Precomputed B-field lookup
