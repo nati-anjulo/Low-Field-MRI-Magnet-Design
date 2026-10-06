@@ -6,12 +6,14 @@ GPU-accelerated simulated annealing for permanent magnet array design.
 
 ```
 1. Generate Precomputed Field
-   ├── Generate_Precomputed_Field_Batched_analytical.ipynb  (GPU analytical - fast)
+   ├── Generate_Precomputed_Field_Batched_analytical.ipynb  (GPU analytical)
    └── Output: Precalc_field_*.npz
 
-2. Run Optimization
-   ├── ellipse_optimization_usage.ipynb      (elliptical bore)
-   └── cylindrical_optimization_usage.ipynb  (cylindrical octant)
+2. Run Optimization (Example Usage Notebooks)
+   ├── ellipse_optimization_usage.ipynb      ← Example: elliptical bore
+   └── cylindrical_optimization_usage.ipynb  ← Example: cylindrical octant
+   
+   These are example notebooks - modify parameters for your application.
 
 3. Results
    ├── Optimized magnet positions/orientations
