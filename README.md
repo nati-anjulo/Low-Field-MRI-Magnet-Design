@@ -49,6 +49,10 @@ GPU-accelerated simulated annealing for permanent magnet array design.
    - Elliptical: `ellipse_optimization_usage.ipynb`
    - Cylindrical: `cylindrical_optimization_usage.ipynb`
 
+3. **Continue optimization** (optional)
+   - Load previous result: `np.load('*_design_*.npz')`
+   - Use `q1_config` (ellipse) or `octant_config` (cylindrical) as initial config
+
 ## File Structure
 
 ```
@@ -90,6 +94,7 @@ Magnet_design/
 - Python 3.8+
 - NVIDIA GPU with CUDA
 - CuPy, NumPy, Matplotlib
+- magpylib (for field validation)
 
 ## Key Features
 
