@@ -1,4 +1,2 @@
-# Large data files
-*.npz
 __pycache__/
 *.pyc
