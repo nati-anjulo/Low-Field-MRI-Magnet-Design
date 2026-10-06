@@ -74,9 +74,6 @@ def cuboid_field(points, polarization, dimensions, position=None, use_gpu=False)
     # Initialize field
     B = xp.zeros_like(r)
 
-    # Regularization for numerical stability
-    eps = 1e-10
-
     # Sum over 8 corners
     for i in range(8):
         sx, sy, sz = signs[i]
@@ -86,26 +83,21 @@ def cuboid_field(points, polarization, dimensions, position=None, use_gpu=False)
         y = r[:, 1] - sy * b
         z = r[:, 2] - sz * c
 
-        # Distance from corner (regularized)
-        R = xp.sqrt(x**2 + y**2 + z**2 + eps**2)
+        # Distance from corner
+        R = xp.sqrt(x**2 + y**2 + z**2)
 
         # Corner sign factor
         sign = sx * sy * sz
 
-        # Regularized log arguments (must be positive)
-        log_xR = xp.log(xp.abs(x) + R + eps)
-        log_yR = xp.log(xp.abs(y) + R + eps)
-        log_zR = xp.log(xp.abs(z) + R + eps)
-
-        # Regularized coordinates for atan
-        x_s = xp.where(xp.abs(x) < eps, eps * xp.sign(x + eps), x)
-        y_s = xp.where(xp.abs(y) < eps, eps * xp.sign(y + eps), y)
-        z_s = xp.where(xp.abs(z) < eps, eps * xp.sign(z + eps), z)
+        # Log arguments: use (x + R), not (|x| + R) - sign matters for off-axis points
+        log_xR = xp.log(x + R)
+        log_yR = xp.log(y + R)
+        log_zR = xp.log(z + R)
 
         # Field contributions (Engel-Herbert formulas)
         # Bx
         B[:, 0] += sign * (
-            J[0] * xp.arctan2(y_s * z_s, x_s * R)
+            J[0] * xp.arctan2(y * z, x * R)
             - J[1] * log_zR
             - J[2] * log_yR
         )
@@ -113,7 +105,7 @@ def cuboid_field(points, polarization, dimensions, position=None, use_gpu=False)
         # By
         B[:, 1] += sign * (
             -J[0] * log_zR
-            + J[1] * xp.arctan2(x_s * z_s, y_s * R)
+            + J[1] * xp.arctan2(x * z, y * R)
             - J[2] * log_xR
         )
 
@@ -121,7 +113,7 @@ def cuboid_field(points, polarization, dimensions, position=None, use_gpu=False)
         B[:, 2] += sign * (
             -J[0] * log_yR
             - J[1] * log_xR
-            + J[2] * xp.arctan2(x_s * y_s, z_s * R)
+            + J[2] * xp.arctan2(x * y, z * R)
         )
 
     # Apply 1/(4π) factor

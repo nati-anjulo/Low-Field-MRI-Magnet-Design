@@ -15,7 +15,7 @@ except ImportError:
     xp = cp
 
 
-def _cuboid_field_batch(r, J, half_dims, corner_signs, sigma, eps=1e-10):
+def _cuboid_field_batch(r, J, half_dims, corner_signs, sigma):
     """Core vectorized computation for a batch of points."""
     # r: (N, 3), half_dims: (3,), corner_signs: (8, 3), sigma: (8,)
 
@@ -26,17 +26,17 @@ def _cuboid_field_batch(r, J, half_dims, corner_signs, sigma, eps=1e-10):
     y = rel_pos[:, :, 1]
     z = rel_pos[:, :, 2]
 
-    R = xp.sqrt(x**2 + y**2 + z**2 + eps**2)
+    R = xp.sqrt(x**2 + y**2 + z**2)
 
-    # Regularized log arguments
-    log_xR = xp.log(xp.abs(x) + R + eps)
-    log_yR = xp.log(xp.abs(y) + R + eps)
-    log_zR = xp.log(xp.abs(z) + R + eps)
+    # Log arguments: use (x + R), not (|x| + R) - sign matters for off-axis points
+    log_xR = xp.log(x + R)
+    log_yR = xp.log(y + R)
+    log_zR = xp.log(z + R)
 
     # Arctan terms
-    atan_yz_xR = xp.arctan2(y * z, x * R + eps)
-    atan_xz_yR = xp.arctan2(x * z, y * R + eps)
-    atan_xy_zR = xp.arctan2(x * y, z * R + eps)
+    atan_yz_xR = xp.arctan2(y * z, x * R)
+    atan_xz_yR = xp.arctan2(x * z, y * R)
+    atan_xy_zR = xp.arctan2(x * y, z * R)
 
     # Sum over 8 corners
     Bx = xp.sum(sigma * (J[0] * atan_yz_xR - J[1] * log_zR - J[2] * log_yR), axis=1)
@@ -68,14 +68,16 @@ def cuboid_field_gpu(points, polarization, dimensions, position=None, batch_size
     B : array, shape (N, 3)
         Magnetic field [Bx, By, Bz] in Tesla
     """
-    points = xp.asarray(points, dtype=xp.float32)
-    J = xp.asarray(polarization, dtype=xp.float32)
-    dims = xp.asarray(dimensions, dtype=xp.float32)
+    # Preserve input dtype for precision (float64 for near-surface accuracy)
+    points = xp.asarray(points)
+    dtype = points.dtype
+    J = xp.asarray(polarization, dtype=dtype)
+    dims = xp.asarray(dimensions, dtype=dtype)
 
     if position is None:
-        pos = xp.zeros(3, dtype=xp.float32)
+        pos = xp.zeros(3, dtype=dtype)
     else:
-        pos = xp.asarray(position, dtype=xp.float32)
+        pos = xp.asarray(position, dtype=dtype)
 
     # Translate to magnet frame
     r = points - pos
@@ -87,7 +89,7 @@ def cuboid_field_gpu(points, polarization, dimensions, position=None, batch_size
     corner_signs = xp.array([
         [-1, -1, -1], [+1, -1, -1], [-1, +1, -1], [+1, +1, -1],
         [-1, -1, +1], [+1, -1, +1], [-1, +1, +1], [+1, +1, +1]
-    ], dtype=xp.float32)
+    ], dtype=dtype)
     sigma = corner_signs[:, 0] * corner_signs[:, 1] * corner_signs[:, 2]
 
     N = len(points)
@@ -97,7 +99,7 @@ def cuboid_field_gpu(points, polarization, dimensions, position=None, batch_size
         return _cuboid_field_batch(r, J, half_dims, corner_signs, sigma)
 
     # Batched processing
-    B = xp.zeros((N, 3), dtype=xp.float32)
+    B = xp.zeros((N, 3), dtype=dtype)
     for i in range(0, N, batch_size):
         end = min(i + batch_size, N)
         B[i:end] = _cuboid_field_batch(r[i:end], J, half_dims, corner_signs, sigma)
@@ -125,10 +127,12 @@ def multi_magnet_field_gpu(points, positions, polarizations, dimensions):
     B : array, shape (N, 3)
         Total magnetic field
     """
-    points = xp.asarray(points, dtype=xp.float32)
-    positions = xp.asarray(positions, dtype=xp.float32)
-    polarizations = xp.asarray(polarizations, dtype=xp.float32)
-    dimensions = xp.asarray(dimensions, dtype=xp.float32)
+    # Preserve input dtype for precision
+    points = xp.asarray(points)
+    dtype = points.dtype
+    positions = xp.asarray(positions, dtype=dtype)
+    polarizations = xp.asarray(polarizations, dtype=dtype)
+    dimensions = xp.asarray(dimensions, dtype=dtype)
 
     N = len(points)
     M = len(positions)
@@ -144,7 +148,7 @@ def multi_magnet_field_gpu(points, positions, polarizations, dimensions):
     corner_signs = xp.array([
         [-1, -1, -1], [+1, -1, -1], [-1, +1, -1], [+1, +1, -1],
         [-1, -1, +1], [+1, -1, +1], [-1, +1, +1], [+1, +1, +1]
-    ], dtype=xp.float32)
+    ], dtype=dtype)
 
     # sigma for each corner: (8,)
     sigma = corner_signs[:, 0] * corner_signs[:, 1] * corner_signs[:, 2]
@@ -165,16 +169,15 @@ def multi_magnet_field_gpu(points, positions, polarizations, dimensions):
     y = rel_pos[:, :, :, 1]
     z = rel_pos[:, :, :, 2]
 
-    eps = 1e-10
-    R = xp.sqrt(x**2 + y**2 + z**2 + eps**2)
+    R = xp.sqrt(x**2 + y**2 + z**2)
 
-    # Log and atan terms: (N, M, 8)
-    log_xR = xp.log(xp.abs(x) + R + eps)
-    log_yR = xp.log(xp.abs(y) + R + eps)
-    log_zR = xp.log(xp.abs(z) + R + eps)
-    atan_yz_xR = xp.arctan2(y * z, x * R + eps)
-    atan_xz_yR = xp.arctan2(x * z, y * R + eps)
-    atan_xy_zR = xp.arctan2(x * y, z * R + eps)
+    # Log and atan terms: (N, M, 8) - use (x + R), not (|x| + R)
+    log_xR = xp.log(x + R)
+    log_yR = xp.log(y + R)
+    log_zR = xp.log(z + R)
+    atan_yz_xR = xp.arctan2(y * z, x * R)
+    atan_xz_yR = xp.arctan2(x * z, y * R)
+    atan_xy_zR = xp.arctan2(x * y, z * R)
 
     # Polarizations: (M, 3) -> Jx, Jy, Jz each (M,)
     Jx = polarizations[:, 0]  # (M,)
