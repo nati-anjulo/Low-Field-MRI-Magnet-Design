@@ -103,21 +103,15 @@ Install these packages before running:
 pip install numpy cupy matplotlib magpylib plotly
 ```
 
-| Package | What it does |
-|---------|--------------|
-| `numpy` | Array operations and data handling |
-| `cupy` | GPU-accelerated arrays (like NumPy but runs on your GPU) |
-| `matplotlib` | Plotting and visualization |
-| `magpylib` | Independent magnetic field calculation for validation |
-| `plotly` | Interactive 3D plots of magnet configurations |
+
 
 ## Key Features
 
 - 3-phase hybrid perturbation (exploration → transition → exploitation)
 - S-curve perturbation scaling
-- Auto-calibration (Ben-Ameur method) — automatically determines optimal initial temperature and cooling rate based on the cost function landscape. Without calibration, SA may cool too fast (getting stuck in local minima) or too slow (wasting iterations).
+- Auto-calibration (Ben-Ameur method) — determines initial temperature and cooling rate from the cost function
 - Bolt hole avoidance constraints
-- GPU-accelerated field calculation (matches magpylib exactly)
+- GPU-accelerated field calculation
 
 ## Author
 
