@@ -6,14 +6,12 @@ GPU-accelerated simulated annealing for permanent magnet array design.
 
 ```
 1. Generate Precomputed Field
-   ├── Generate_Precomputed_Field_Batched_analytical.ipynb  (GPU analytical)
+   ├── Generate_Precomputed_Field_Batched_analytical.ipynb  (GPU analytical - fast)
    └── Output: Precalc_field_*.npz
 
-2. Run Optimization (Example Usage Notebooks)
-   ├── ellipse_optimization_usage.ipynb      ← Example: elliptical bore
-   └── cylindrical_optimization_usage.ipynb  ← Example: cylindrical octant
-   
-   These are example notebooks - modify parameters for your application.
+2. Run Optimization
+   ├── ellipse_optimization_usage.ipynb      (elliptical bore)
+   └── cylindrical_optimization_usage.ipynb  (cylindrical octant)
 
 3. Results
    ├── Optimized magnet positions/orientations
@@ -27,7 +25,8 @@ GPU-accelerated simulated annealing for permanent magnet array design.
 |---------|----------|-------------|
 | `ellipse_opt` | Elliptical cylinder | User-defined elliptical bore (rx, ry, gap, z_max) |
 | `cylindrical_opt` | Cylindrical octant | User-defined cylindrical bounds (r_min, r_max, z_min, z_max) |
-| `analytical_magnet_gpu.py` | Field calculation | GPU-accelerated analytical cuboid field (Engel-Herbert) |
+| `field_calculator.py` | **Core** | GPU precompute lookup - loads Precalc_field_*.npz for fast field interpolation |
+| `analytical_magnet_gpu.py` | Field calculation | GPU analytical cuboid field (Engel-Herbert) |
 | `analytical_field.py` | Field calculation | CPU analytical cuboid field |
 
 ## Notebooks
@@ -66,9 +65,10 @@ Magnet_design/
 │       ├── calibration.py
 │       └── generator.py
 │
-├── Field Calculation
-│   ├── analytical_magnet_gpu.py        # GPU vectorized (CuPy)
-│   └── analytical_field.py             # CPU version (NumPy)
+├── Core Modules
+│   ├── field_calculator.py             # GPU precompute lookup (loads Precalc_field_*.npz)
+│   ├── analytical_magnet_gpu.py        # GPU analytical (CuPy)
+│   └── analytical_field.py             # CPU analytical (NumPy)
 │
 ├── Usage Notebooks
 │   ├── ellipse_optimization_usage.ipynb
@@ -88,7 +88,7 @@ Magnet_design/
 ## Key Features
 
 - 3-phase hybrid perturbation (exploration → transition → exploitation)
-- S-curve temperature scaling
+- S-curve perturbation scaling
 - Auto-calibration (Ben-Ameur method)
 - Bolt hole avoidance constraints
 - GPU-accelerated field calculation (matches magpylib exactly)
