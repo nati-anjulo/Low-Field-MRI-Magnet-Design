@@ -92,3 +92,10 @@ Magnet_design/
 - Auto-calibration (Ben-Ameur method)
 - Bolt hole avoidance constraints
 - GPU-accelerated field calculation (matches magpylib exactly)
+
+## Author
+
+**Natnael Anjulo**  
+**CaseMRI** | Department of Biomedical Engineering  
+Case Western Reserve University  
+2026
