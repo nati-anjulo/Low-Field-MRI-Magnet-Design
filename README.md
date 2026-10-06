@@ -91,16 +91,31 @@ Magnet_design/
 
 ## Requirements
 
-- Python 3.8+
-- NVIDIA GPU with CUDA
-- CuPy, NumPy, Matplotlib
-- magpylib (for field validation)
+**Hardware:**
+- NVIDIA GPU with CUDA support (for GPU-accelerated optimization)
+
+**Software:**
+- Python 3.8 or newer
+
+**Python Packages:**
+Install these packages before running:
+```bash
+pip install numpy cupy matplotlib magpylib plotly
+```
+
+| Package | What it does |
+|---------|--------------|
+| `numpy` | Array operations and data handling |
+| `cupy` | GPU-accelerated arrays (like NumPy but runs on your GPU) |
+| `matplotlib` | Plotting and visualization |
+| `magpylib` | Independent magnetic field calculation for validation |
+| `plotly` | Interactive 3D plots of magnet configurations |
 
 ## Key Features
 
 - 3-phase hybrid perturbation (exploration → transition → exploitation)
 - S-curve perturbation scaling
-- Auto-calibration (Ben-Ameur method)
+- Auto-calibration (Ben-Ameur method) — automatically determines optimal initial temperature and cooling rate based on the cost function landscape. Without calibration, SA may cool too fast (getting stuck in local minima) or too slow (wasting iterations).
 - Bolt hole avoidance constraints
 - GPU-accelerated field calculation (matches magpylib exactly)
 

@@ -22,11 +22,12 @@ REQUIRED PACKAGES
 Package         Version     Purpose
 -----------     -------     -----------------------------------------------
 numpy           >=1.20      Array operations, data handling
-cupy            >=12.0      GPU-accelerated computing (replaces numpy on GPU)
-scipy           >=1.7       Optimization routines (brentq for calibration)
-matplotlib      >=3.5       2D plotting, cost progression visualization
-plotly          >=5.0       3D interactive visualization of magnet positions
-pytictoc        >=1.5       Timing/profiling optimization loops
+cupy            >=12.0      GPU-accelerated computing (like numpy but on GPU)
+scipy           >=1.7       Math routines used in calibration
+matplotlib      >=3.5       2D plotting (cost curves, field plots)
+plotly          >=5.0       3D interactive plots of magnet positions
+magpylib        >=4.0       Magnetic field validation (cross-checks results)
+pytictoc        >=1.5       Timing how long optimization takes
 
 --------------------------------------------------------------------------------
 INSTALLATION
@@ -74,15 +75,23 @@ Or run this quick test in Python:
 PRECOMPUTED FIELD DATA
 --------------------------------------------------------------------------------
 
-The optimization requires a precomputed magnetic field lookup table:
-    Precalc_field_450mm_grid_1mm_step_Br1.48_demag0.9836_20260701_220818.npz
+The optimization needs a precomputed magnetic field lookup table (.npz file).
+This speeds up optimization by pre-calculating the field from a single magnet
+at many grid points, so we can quickly look up field values during optimization.
 
-This file contains:
-    - Bxyzvalue: Precomputed B-field components
-    - Ref_grid: Reference grid coordinates
-    - step_size: Grid resolution (1mm)
+**Generate your own precomputed field:**
+    1. Open: precompute/Generate_Precomputed_Field_Batched_analytical.ipynb
+    2. Adjust parameters as needed:
+       - Grid size (larger = more memory but handles bigger designs)
+       - Magnet properties (Br, demagnetization factor)
+       - Step size (smaller = more accurate but larger file)
+    3. Run the notebook - it will create a Precalc_field_*.npz file
+    4. Place the .npz file in the Magnet_design/ folder
 
-Place this file in the mag_opt directory before running optimization.
+**What the .npz file contains:**
+    - Bxyzvalue: B-field (x,y,z) at each grid point
+    - Ref_grid: Grid coordinates
+    - step_size: Distance between grid points (e.g., 1mm)
 
 --------------------------------------------------------------------------------
 USAGE
@@ -102,10 +111,11 @@ TROUBLESHOOTING
    -> Install cupy with correct CUDA version: pip install cupy-cuda12x
 
 2. "CUDA out of memory"
-   -> Reduce n_magnets or n_sample_points
-   -> Clear GPU memory: cp.get_default_memory_pool().free_all_blocks()
+   -> free the GPU memory
+   -> Restart your Jupyter kernel or reduce n_magnets/n_sample_points
 
-3. "Field lookup out of bounds"
-   -> Check that magnet positions are within the precomputed grid range
+3. Grid size recommendation
+   -> Grid size should be 1.5x the largest dimension of your design
+   -> Example: 300mm bore design needs at least 450mm grid
 
 ================================================================================
