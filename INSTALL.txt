@@ -1,127 +1,66 @@
-================================================================================
-MAGNET ARRAY OPTIMIZATION - INSTALLATION GUIDE
-================================================================================
+MAGNET ARRAY OPTIMIZATION - INSTALL
+====================================
 
-This project contains GPU-accelerated simulated annealing optimization for
-permanent magnet array design. Two geometry types are supported:
-  - Elliptical cylinder (ellipse_opt package)
-  - Cylindrical octant (cylindrical_opt package)
+What you need:
+- Python 3.8+
+- NVIDIA GPU with CUDA
 
---------------------------------------------------------------------------------
-SYSTEM REQUIREMENTS
---------------------------------------------------------------------------------
-
-1. Python 3.9 or higher
-2. NVIDIA GPU with CUDA support
-3. CUDA Toolkit 11.x or 12.x installed
-
---------------------------------------------------------------------------------
-REQUIRED PACKAGES
---------------------------------------------------------------------------------
-
-Package         Version     Purpose
------------     -------     -----------------------------------------------
-numpy           >=1.20      Array operations, data handling
-cupy            >=12.0      GPU-accelerated computing (like numpy but on GPU)
-scipy           >=1.7       Math routines used in calibration
-matplotlib      >=3.5       2D plotting (cost curves, field plots)
-plotly          >=5.0       3D interactive plots of magnet positions
-magpylib        >=4.0       Magnetic field validation (cross-checks results)
-pytictoc        >=1.5       Timing how long optimization takes
-
---------------------------------------------------------------------------------
-INSTALLATION
---------------------------------------------------------------------------------
-
-Option 1: Install from requirements.txt
+Install packages:
     pip install -r requirements.txt
 
-Option 2: Install packages individually
+Or manually:
     pip install numpy scipy matplotlib plotly pytictoc
+    pip install cupy-cuda12x    # use cupy-cuda11x for CUDA 11
+    pip install magpylib        # optional, for validation
 
-    # For CUDA 12.x:
-    pip install cupy-cuda12x
+Test it works:
+    python -c "import cupy as cp; print(cp.array([1,2,3]))"
 
-    # For CUDA 11.x:
-    pip install cupy-cuda11x
+------------------------------------
+PRECOMPUTED FIELD
+------------------------------------
 
-Option 3: Using conda
-    conda install numpy scipy matplotlib plotly
-    pip install cupy-cuda12x pytictoc
+Before optimizing, generate a field lookup file:
+1. Open precompute/Generate_Precomputed_Field_Batched_analytical.ipynb
+2. Set your grid size (should be 1.5x your design size)
+3. Run it - creates Precalc_field_*.npz
+4. Put that file in Magnet_design/
 
---------------------------------------------------------------------------------
-VERIFY INSTALLATION
---------------------------------------------------------------------------------
+------------------------------------
+RUN OPTIMIZATION
+------------------------------------
 
-Run the check script to verify all dependencies are installed:
-
-    python check_dependencies.py
-
-Or run this quick test in Python:
-
-    import numpy as np
-    import cupy as cp
-    import scipy
-    import matplotlib
-    import plotly
-    from pytictoc import TicToc
-
-    # Test GPU
-    x = cp.array([1, 2, 3])
-    print(f"CuPy GPU test: {x}")
-    print("All dependencies installed correctly!")
-
---------------------------------------------------------------------------------
-PRECOMPUTED FIELD DATA
---------------------------------------------------------------------------------
-
-The optimization needs a precomputed magnetic field lookup table (.npz file).
-This speeds up optimization by pre-calculating the field from a single magnet
-at many grid points, so we can quickly look up field values during optimization.
-
-**Generate your own precomputed field:**
-    1. Open: precompute/Generate_Precomputed_Field_Batched_analytical.ipynb
-    2. Adjust parameters as needed:
-       - Grid size (larger = more memory but handles bigger designs)
-       - Magnet properties (Br, demagnetization factor)
-       - Step size (smaller = more accurate but larger file)
-    3. Run the notebook - it will create a Precalc_field_*.npz file
-    4. Place the .npz file in the Magnet_design/ folder
-
-**What the .npz file contains:**
-    - Bxyzvalue: B-field (x,y,z) at each grid point
-    - Ref_grid: Grid coordinates
-    - step_size: Distance between grid points (e.g., 1mm)
-
---------------------------------------------------------------------------------
-USAGE
---------------------------------------------------------------------------------
-
-Elliptical optimization:
+Elliptical bore:
     jupyter notebook ellipse_optimization_usage.ipynb
 
-Cylindrical optimization:
+Cylindrical bore:
     jupyter notebook cylindrical_optimization_usage.ipynb
 
---------------------------------------------------------------------------------
-TROUBLESHOOTING
---------------------------------------------------------------------------------
+------------------------------------
+3D VIEWER
+------------------------------------
 
-1. "No module named 'cupy'"
-   -> Install cupy with correct CUDA version: pip install cupy-cuda12x
+Built-in (no extra install needed):
+    visualization.show_magnets_plotly(config, magnet_size)
 
-2. "CUDA out of memory"
-   -> free the GPU memory
-   -> Restart your Jupyter kernel or reduce n_magnets/n_sample_points
+If the plot doesn't show, it auto-opens in your browser.
+To force browser: add show=True
 
-3. Grid size recommendation
-   -> Grid size should be 1.5x the largest dimension of your design
-   -> Example: 300mm bore design needs at least 450mm grid
+Magpylib viewer (if you have it installed):
+    import visualize_configuration as VS
+    VS.rad_halbach_Design_rad(magnet_size, config).show()
 
-4. "WebGL is not supported by your browser" in Plotly 3D plots
-   -> In VS Code: Command Palette (Ctrl+Shift+P) → "Preferences: Configure Runtime Arguments"
-   -> In argv.json, set: "disable-hardware-acceleration": false
-   -> Restart VS Code
-   -> Alternative: start VS Code with: code --ignore-gpu-blocklist --enable-webgl
+------------------------------------
+COMMON ISSUES
+------------------------------------
 
-================================================================================
+"No module named cupy"
+    pip install cupy-cuda12x
+
+"CUDA out of memory"
+    Restart Jupyter kernel, or run:
+    cp.get_default_memory_pool().free_all_blocks()
+
+3D plot not showing
+    The viewer tries browser fallback automatically.
+    Or use: visualization.show_magnets_plotly(config, size, show=True)

@@ -1,17 +1,28 @@
 """
 Visualization functions for magnet array optimization.
+
+Provides:
+- Plot_positions_plotly: Scatter plot of magnet positions and DSV points
+- plot_cost_progression: Cost vs iteration plot for SA optimization
+- show_magnets_plotly: 3D magnet viewer with N/S pole coloring (magpylib-style)
 """
 import numpy as np
-import cupy as cp
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
-import plotly.io as pio
 from . import field_calculator as GRFC
 
-# Plotly renderer: set to "browser" if WebGL fails in VS Code
-# Fix: VS Code → Command Palette → "Preferences: Configure Runtime Arguments"
-#      In argv.json, set: "disable-hardware-acceleration": false
-PLOTLY_RENDERER = None  # None = auto, "browser" = force browser
+
+def safe_show(fig):
+    """Display Plotly figure with automatic WebGL fallback."""
+    try:
+        # Try default renderer first
+        fig.show()
+    except Exception:
+        # Fallback to browser if WebGL fails
+        try:
+            fig.show(renderer="browser")
+        except Exception:
+            print("Could not display figure. Try: fig.show(renderer='browser')")
 
 def Plot_positions_plotly(magnets_pos, dsv_points_seg):
     # Extract positions of each cuboid
@@ -62,10 +73,7 @@ def Plot_positions_plotly(magnets_pos, dsv_points_seg):
     )
 
     # Show the plot (with fallback for WebGL issues)
-    if PLOTLY_RENDERER:
-        fig.show(renderer=PLOTLY_RENDERER)
-    else:
-        fig.show()
+    safe_show(fig)
 
 def plot_sa_trajectory(track_mag_cost_values):
     """
@@ -174,3 +182,161 @@ def plot_cost_progression(track_mag_cost_values):
     print(f"  Initial cost: {valid_costs[0]:,.0f}")
     print(f"  Final valid cost: {valid_costs[-1]:,.0f}")
     print(f"  Best cost: {valid_costs[min_cost_idx]:,.0f} (at iteration {valid_iterations[min_cost_idx]})")
+
+
+def show_magnets_plotly(config, magnet_size, show=False):
+    """
+    3D magnet visualization with N/S pole colors using Plotly.
+    Red = North (+Y face), Green = South (-Y face), White = sides.
+
+    Matches magpylib's visual style with proper 3D lighting.
+    Automatically handles WebGL fallback to browser if needed.
+
+    Parameters:
+    -----------
+    config : ndarray
+        Magnet configuration array [z, r, theta, phi] per magnet (cylindrical coords)
+    magnet_size : float
+        Size of cubic magnet in meters
+    show : bool
+        If True, display figure automatically with WebGL fallback (default: True)
+
+    Returns:
+    --------
+    fig : plotly Figure
+        Interactive 3D figure
+    """
+    config_np = np.asarray(config)
+    if config_np.ndim == 1:
+        config_np = config_np.reshape(-1, 4)
+
+    size_mm = magnet_size * 1000
+    half = size_mm / 2
+    n = len(config_np)
+
+    # Extract cylindrical coords and convert to Cartesian
+    z_pos = config_np[:, 0] * 1000  # mm
+    r_pos = config_np[:, 1] * 1000  # mm
+    theta_pos = config_np[:, 2]
+    phi_rot = config_np[:, 3]
+
+    x_pos = r_pos * np.cos(theta_pos)
+    y_pos = r_pos * np.sin(theta_pos)
+
+    # Base cube vertices (centered at origin)
+    cube_verts = np.array([
+        [-1, -1, -1], [-1, 1, -1], [1, 1, -1], [1, -1, -1],
+        [-1, -1, 1], [-1, 1, 1], [1, 1, 1], [1, -1, 1],
+    ]) * half
+
+    # VECTORIZED rotation around Z-axis (much faster than loop)
+    cos_phi = np.cos(phi_rot)[:, np.newaxis]  # (n, 1)
+    sin_phi = np.sin(phi_rot)[:, np.newaxis]  # (n, 1)
+
+    # Broadcast cube vertices to all magnets: (n, 8, 3)
+    verts_x = cube_verts[:, 0]  # (8,)
+    verts_y = cube_verts[:, 1]  # (8,)
+    verts_z = cube_verts[:, 2]  # (8,)
+
+    # Apply Z-rotation: x' = x*cos - y*sin, y' = x*sin + y*cos
+    rot_x = cos_phi * verts_x - sin_phi * verts_y  # (n, 8)
+    rot_y = sin_phi * verts_x + cos_phi * verts_y  # (n, 8)
+    rot_z = np.tile(verts_z, (n, 1))               # (n, 8)
+
+    # Translate to magnet positions
+    all_verts = np.stack([
+        rot_x + x_pos[:, np.newaxis],
+        rot_y + y_pos[:, np.newaxis],
+        rot_z + z_pos[:, np.newaxis]
+    ], axis=-1)  # (n, 8, 3)
+
+    # All 6 faces per cube as one mesh with vertex-based coloring
+    # Vertex intensity based on local Y coordinate creates red-white-green gradient
+    # y=+1 (North) = intensity 1 = red
+    # y=-1 (South) = intensity 0 = green
+    # Faces in between get interpolated colors (wrapping effect)
+
+    # All 6 faces: order matters for consistent indexing
+    face_idx = [
+        [1, 2, 6, 5],  # North (+Y) - all y=+1
+        [0, 3, 7, 4],  # South (-Y) - all y=-1
+        [0, 1, 5, 4],  # Left (-X) - mixed y
+        [3, 2, 6, 7],  # Right (+X) - mixed y
+        [0, 1, 2, 3],  # Bottom (-Z) - mixed y
+        [4, 5, 6, 7],  # Top (+Z) - mixed y
+    ]
+
+    # Build all faces
+    all_faces = np.concatenate([all_verts[:, f, :] for f in face_idx]).reshape(-1, 3)
+
+    # Build intensity based on original (unrotated) vertex Y coordinate
+    # Vertices 1,2,5,6 have y=+1 (North=red), vertices 0,3,4,7 have y=-1 (South=green)
+    vert_intensity = np.array([0, 1, 1, 0, 0, 1, 1, 0])  # 1=North(red), 0=South(green)
+    face_intensities = np.concatenate([
+        np.tile(vert_intensity[f], n) for f in face_idx
+    ])
+
+    def make_indices(n_quads):
+        base = np.arange(n_quads) * 4
+        i = np.stack([base, base], axis=1).flatten()
+        j = np.stack([base + 1, base + 2], axis=1).flatten()
+        k = np.stack([base + 2, base + 3], axis=1).flatten()
+        return i, j, k
+
+    fi, fj, fk = make_indices(n * 6)  # 6 faces per magnet
+
+    # Lighting settings - smoother appearance
+    lighting = dict(
+        ambient=0.5,
+        diffuse=0.9,
+        specular=0.2,
+        roughness=0.6,
+        fresnel=0.1
+    )
+    lightposition = dict(x=200, y=200, z=400)
+
+    # Red-White-Green colorscale (matched to magpylib)
+    colorscale = [
+        [0.0, 'rgb(40, 160, 40)'],     # Green (South)
+        [0.5, 'rgb(240, 240, 240)'],   # Light gray (middle)
+        [1.0, 'rgb(200, 50, 50)'],     # Red (North)
+    ]
+
+    fig = go.Figure(data=[
+        go.Mesh3d(
+            x=all_faces[:,0], y=all_faces[:,1], z=all_faces[:,2],
+            i=fi, j=fj, k=fk,
+            intensity=face_intensities,
+            colorscale=colorscale,
+            showscale=False,
+            flatshading=False,
+            lighting=lighting,
+            lightposition=lightposition,
+        ),
+    ])
+
+    fig.update_layout(
+        scene=dict(
+            xaxis_title='X (mm)', yaxis_title='Y (mm)', zaxis_title='Z (mm)',
+            aspectmode='data',
+            camera=dict(eye=dict(x=1, y=-1.5, z=1.4)),
+            bgcolor='white'
+        ),
+        width=None, height=500,  # None = auto-fill cell width
+        margin=dict(l=0, r=0, t=30, b=0),
+        annotations=[
+            dict(
+                text=f"Collection ({n} magnets)",
+                xref="paper", yref="paper",
+                x=0.98, y=0.98,
+                showarrow=False,
+                font=dict(size=12),
+                xanchor='right', yanchor='top'
+            )
+        ]
+    )
+
+    if show:
+        safe_show(fig)
+
+    return fig

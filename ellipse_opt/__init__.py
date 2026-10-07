@@ -28,6 +28,9 @@ from . import optimizer
 from . import calibration
 from . import visualization
 
+# Export key visualization function at package level
+from .visualization import show_magnets_plotly
+
 # Export key functions at package level for convenience
 from .geometry import ellipse_r_gpu, get_bolt_positions_ellipse_gpu
 from .sampling import _generate_sample_points_small_dsv
@@ -37,7 +40,7 @@ from .constraints import calculate_soft_barriers_half_ellipse, check_hard_constr
 from .cost import calculate_cost_half_ellipse
 from .optimizer import simulated_annealing_half_ellipse, run_n_times_half_ellipse
 from .calibration import calibrate_sa_rigorous, diagnose_sa_calibration
-from .visualization import Plot_positions_plotly, plot_sa_trajectory, plot_cost_progression
+from .visualization import Plot_positions_plotly, plot_sa_trajectory, plot_cost_progression, show_magnets_plotly
 
 __all__ = [
     # Modules
@@ -69,4 +72,5 @@ __all__ = [
     'Plot_positions_plotly',
     'plot_sa_trajectory',
     'plot_cost_progression',
+    'show_magnets_plotly',
 ]

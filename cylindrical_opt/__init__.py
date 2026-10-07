@@ -26,6 +26,9 @@ from . import optimizer
 from . import calibration
 from . import visualization
 
+# Export key visualization function at package level
+from .visualization import show_magnets_plotly
+
 __all__ = [
     'field_calculator',
     'sampling',
@@ -36,4 +39,5 @@ __all__ = [
     'optimizer',
     'calibration',
     'visualization',
+    'show_magnets_plotly',
 ]
