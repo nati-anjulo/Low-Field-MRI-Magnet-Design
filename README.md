@@ -2,47 +2,15 @@
 
 Optimize permanent magnet arrays using simulated annealing on GPU.
 
-## How to Use
+## Why Simulated Annealing
 
-1. **Generate a precomputed field file** (one-time setup)
-   ```
-   Run: precompute/Generate_Precomputed_Field_Batched_analytical.ipynb
-   Output: Precalc_field_*.npz
-   ```
+The choice of optimizer matters as much as the speed of each evaluation. Navigating a rugged solution space requires covering the space broadly as well as quickly.
 
-2. **Run optimization**
-   - For elliptical bore: `ellipse_optimization_usage.ipynb`
-   - For cylindrical bore: `cylindrical_optimization_usage.ipynb`
+A perturbation that moves many magnets simultaneously changes the field everywhere, while a perturbation that moves only one parameter changes the field only slightly. How far each step moves a parameter through the design space shapes what the search can find.
 
-3. **View results**
-   - Optimized positions saved to `*_design_*.npz`
-   - 3D viewer shows magnet arrangement
+Genetic algorithms have been common for magnet design. They explore the design space by recombining parameters of two parent configurations, and how far each new configuration moves from the parents depends on the operators. Those operators may not deliver the small single-parameter changes that homogeneity tuning needs late in a run.
 
-## What's Inside
-
-```
-Magnet_design/
-├── ellipse_opt/              # Elliptical geometry package
-├── cylindrical_opt/          # Cylindrical geometry package
-├── visualize_configuration.py # Magpylib 3D viewer (optional)
-├── field_validation.py       # Cross-check results with magpylib
-├── precompute/               # Generate field lookup tables
-└── *.ipynb                   # Example notebooks
-```
-
-## 3D Viewer
-
-Built into both packages:
-```python
-visualization.show_magnets_plotly(config, magnet_size)
-```
-Red face = North, Green face = South. Opens in browser if WebGL fails.
-
-Magpylib viewer (if installed):
-```python
-import visualize_configuration as VS
-VS.rad_halbach_Design_rad(magnet_size, config).show()
-```
+Simulated annealing allows fine control over perturbation size - large steps early for exploration, small steps late for refinement.
 
 ## Install
 
@@ -50,15 +18,42 @@ VS.rad_halbach_Design_rad(magnet_size, config).show()
 pip install -r requirements.txt
 ```
 
-Needs an NVIDIA GPU with CUDA.
+Requires Python 3.8+ and NVIDIA GPU with CUDA. See `INSTALL.txt` for details.
+
+## How to Use
+
+1. **Generate a precomputed field file** (one-time)
+   ```
+   Run: precompute/Generate_Precomputed_Field_Batched_analytical.ipynb
+   Output: Precalc_field_*.npz
+   ```
+
+2. **Run optimization**
+   - Elliptical bore: `ellipse_optimization_usage.ipynb`
+   - Cylindrical bore: `cylindrical_optimization_usage.ipynb`
+
+3. **View results**
+   - Saved to `*_design_*.npz`
+   - 3D viewer shows magnet arrangement
+
+## 3D Viewer
+
+Built-in:
+```python
+visualization.show_magnets_plotly(config, magnet_size)
+```
+
+Magpylib (optional):
+```python
+import visualize_configuration as VS
+VS.rad_halbach_Design_rad(magnet_size, config).show()
+```
 
 ## Continue from Previous Run
 
-Load a saved result and keep optimizing:
 ```python
 prev = np.load('ellipse_design_20261007.npz')
 initial_q1 = cp.asarray(prev['q1_config'])
-# Then run optimization as usual
 ```
 
 ---

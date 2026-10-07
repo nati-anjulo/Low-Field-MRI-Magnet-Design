@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 working_checkpoint_*.npz
 *_design_*.npz
+venv/
