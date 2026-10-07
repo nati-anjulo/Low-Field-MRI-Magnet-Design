@@ -1,5 +1,5 @@
 """
-Ellipse geometry functions - STRICT COPY from original notebook.
+Ellipse geometry functions.
 """
 import cupy as cp
 

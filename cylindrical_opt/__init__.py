@@ -1,5 +1,5 @@
 """
-Cylindrical Optimization Package - STRICT COPY from GPU_SA_Octant_with_bolt_OPTIMIZED_Cylinderical.ipynb
+Cylindrical Optimization Package.
 
 All functions are exact copies from the original notebook, organized into modules.
 

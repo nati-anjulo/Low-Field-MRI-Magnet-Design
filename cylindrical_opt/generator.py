@@ -1,5 +1,5 @@
 """
-Magnet generator functions - STRICT COPY from original notebook.
+Magnet generator functions.
 """
 import cupy as cp
 from . import field_calculator as GRFC

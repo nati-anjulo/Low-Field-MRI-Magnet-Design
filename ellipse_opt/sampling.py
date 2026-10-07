@@ -1,5 +1,5 @@
 """
-DSV sampling functions - STRICT COPY from original notebook.
+DSV sampling functions.
 """
 import cupy as cp
 

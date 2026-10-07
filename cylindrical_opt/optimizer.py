@@ -1,5 +1,5 @@
 """
-Simulated annealing optimizer - STRICT COPY from original notebook.
+Simulated annealing optimizer.
 """
 import numpy as np
 import cupy as cp

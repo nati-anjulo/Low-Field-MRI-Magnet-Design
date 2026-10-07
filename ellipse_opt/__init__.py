@@ -1,5 +1,5 @@
 """
-Ellipse Optimization Package - STRICT COPY from GPU_SA_Elliptical_Cylinder_360_half_ellipse_final_design.ipynb
+Ellipse Optimization Package.
 
 All functions are exact copies from the original notebook, organized into modules.
 

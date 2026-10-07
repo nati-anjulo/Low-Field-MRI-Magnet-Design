@@ -1,5 +1,5 @@
 """
-Magnet generator functions - STRICT COPY from original notebook.
+Magnet generator functions.
 """
 import cupy as cp
 from .geometry import ellipse_r_gpu, get_bolt_positions_ellipse_gpu

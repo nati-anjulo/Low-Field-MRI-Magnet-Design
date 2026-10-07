@@ -1,5 +1,5 @@
 """
-Constraint functions - STRICT COPY from original notebook.
+Constraint functions.
 """
 import cupy as cp
 from cupy.cuda import stream as cp_stream

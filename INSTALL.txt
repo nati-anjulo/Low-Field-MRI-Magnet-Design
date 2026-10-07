@@ -118,4 +118,10 @@ TROUBLESHOOTING
    -> Grid size should be 1.5x the largest dimension of your design
    -> Example: 300mm bore design needs at least 450mm grid
 
+4. "WebGL is not supported by your browser" in Plotly 3D plots
+   -> In VS Code: Command Palette (Ctrl+Shift+P) → "Preferences: Configure Runtime Arguments"
+   -> In argv.json, set: "disable-hardware-acceleration": false
+   -> Restart VS Code
+   -> Alternative: start VS Code with: code --ignore-gpu-blocklist --enable-webgl
+
 ================================================================================

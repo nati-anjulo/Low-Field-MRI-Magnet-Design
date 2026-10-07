@@ -1,5 +1,5 @@
 """
-Cost function - STRICT COPY from original notebook.
+Cost function.
 """
 import cupy as cp
 from .generator import reflect_to_half_ellipse

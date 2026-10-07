@@ -1,5 +1,5 @@
 """
-Perturbation functions - STRICT COPY from original notebook.
+Perturbation functions.
 """
 import math
 import cupy as cp

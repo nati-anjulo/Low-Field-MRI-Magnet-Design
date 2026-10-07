@@ -1,5 +1,5 @@
 """
-Cost function - STRICT COPY from original notebook.
+Cost function.
 """
 import cupy as cp
 from cupy.cuda import stream as cp_stream

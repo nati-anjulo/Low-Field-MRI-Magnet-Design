@@ -1,11 +1,17 @@
 """
-Visualization functions - STRICT COPY from original notebook.
+Visualization functions for magnet array optimization.
 """
 import numpy as np
 import cupy as cp
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import plotly.io as pio
 from . import field_calculator as GRFC
+
+# Plotly renderer: set to "browser" if WebGL fails in VS Code
+# Fix: VS Code → Command Palette → "Preferences: Configure Runtime Arguments"
+#      In argv.json, set: "disable-hardware-acceleration": false
+PLOTLY_RENDERER = None  # None = auto, "browser" = force browser
 
 def Plot_positions_plotly(magnets_pos, dsv_points_seg):
     # Extract positions of each cuboid
@@ -55,8 +61,11 @@ def Plot_positions_plotly(magnets_pos, dsv_points_seg):
         height=500
     )
 
-    # Show the plot
-    fig.show()
+    # Show the plot (with fallback for WebGL issues)
+    if PLOTLY_RENDERER:
+        fig.show(renderer=PLOTLY_RENDERER)
+    else:
+        fig.show()
 
 def plot_sa_trajectory(track_mag_cost_values):
     """

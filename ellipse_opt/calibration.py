@@ -1,5 +1,5 @@
 """
-SA Calibration functions - STRICT COPY from original notebook.
+SA Calibration functions.
 """
 import numpy as np
 import cupy as cp
