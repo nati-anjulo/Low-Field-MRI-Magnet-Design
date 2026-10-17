@@ -184,7 +184,7 @@ def plot_cost_progression(track_mag_cost_values):
     print(f"  Best cost: {valid_costs[min_cost_idx]:,.0f} (at iteration {valid_iterations[min_cost_idx]})")
 
 
-def show_magnets_plotly(config, magnet_size, show=False):
+def show_magnets_plotly(config, magnet_size, show=False, colorblind=False, colors=None):
     """
     3D magnet visualization with N/S pole colors using Plotly.
     Red = North (+Y face), Green = South (-Y face), White = sides.
@@ -295,12 +295,28 @@ def show_magnets_plotly(config, magnet_size, show=False):
     )
     lightposition = dict(x=200, y=200, z=400)
 
-    # Red-White-Green colorscale (matched to magpylib)
-    colorscale = [
-        [0.0, 'rgb(40, 160, 40)'],     # Green (South)
-        [0.5, 'rgb(240, 240, 240)'],   # Light gray (middle)
-        [1.0, 'rgb(200, 50, 50)'],     # Red (North)
-    ]
+    # Colorscale: custom, colorblind, or default
+    if colors is not None:
+        # Custom colors: (south_color, north_color) e.g. ('blue', 'orange')
+        colorscale = [
+            [0.0, colors[0]],
+            [0.5, 'rgb(240, 240, 240)'],
+            [1.0, colors[1]],
+        ]
+    elif colorblind:
+        # Blue-White-Orange (colorblind-friendly)
+        colorscale = [
+            [0.0, 'rgb(0, 114, 178)'],      # Blue (South)
+            [0.5, 'rgb(240, 240, 240)'],    # Light gray (middle)
+            [1.0, 'rgb(230, 159, 0)'],      # Orange (North)
+        ]
+    else:
+        # Red-White-Green (default, matches magpylib)
+        colorscale = [
+            [0.0, 'rgb(40, 160, 40)'],      # Green (South)
+            [0.5, 'rgb(240, 240, 240)'],    # Light gray (middle)
+            [1.0, 'rgb(200, 50, 50)'],      # Red (North)
+        ]
 
     fig = go.Figure(data=[
         go.Mesh3d(
