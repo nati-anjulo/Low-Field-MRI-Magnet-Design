@@ -29,7 +29,7 @@ def simulated_annealing_half_ellipse(initial_config, z_min, z_max, rx_inner, ry_
     Returns both Q1 config and full reflected config.
     """
     print("Starting simulated annealing (half-ellipse reflected ellipse)...")
-    print(f"Optimizing {len(initial_config)} magnets in Q1 -> {len(initial_config)*2} total")
+    print(f"Optimizing {len(initial_config)} magnets in Q1 -> {len(initial_config)*4} total (2x y-reflect, 2x z-reflect)")
     
     # Reset phase tracking for this run
     if hasattr(Hybrid_perturbation_half_ellipse, '_phase'):
