@@ -14,6 +14,7 @@ Modules:
 - optimizer: Simulated annealing engine
 - calibration: SA auto-calibration
 - visualization: Plotting functions
+- scad_export: Export to OpenSCAD format for manufacturing
 """
 
 # Import all modules
@@ -27,6 +28,7 @@ from . import cost
 from . import optimizer
 from . import calibration
 from . import visualization
+from . import scad_export
 
 # Export key visualization function at package level
 from .visualization import show_magnets_plotly
@@ -41,6 +43,7 @@ from .cost import calculate_cost_half_ellipse
 from .optimizer import simulated_annealing_half_ellipse, run_n_times_half_ellipse
 from .calibration import calibrate_sa_rigorous, diagnose_sa_calibration
 from .visualization import Plot_positions_plotly, plot_sa_trajectory, plot_cost_progression, show_magnets_plotly
+from .scad_export import export_to_scad, quick_export
 
 __all__ = [
     # Modules
@@ -54,6 +57,7 @@ __all__ = [
     'optimizer',
     'calibration',
     'visualization',
+    'scad_export',
     # Functions
     'ellipse_r_gpu',
     'get_bolt_positions_ellipse_gpu',
@@ -73,4 +77,6 @@ __all__ = [
     'plot_sa_trajectory',
     'plot_cost_progression',
     'show_magnets_plotly',
+    'export_to_scad',
+    'quick_export',
 ]

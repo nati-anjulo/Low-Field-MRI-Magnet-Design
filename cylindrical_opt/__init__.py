@@ -13,6 +13,7 @@ Modules:
 - optimizer: Simulated annealing engine
 - calibration: SA auto-calibration
 - visualization: Plotting functions
+- scad_export: Export to OpenSCAD format for manufacturing
 """
 
 # Import all modules
@@ -25,9 +26,11 @@ from . import cost
 from . import optimizer
 from . import calibration
 from . import visualization
+from . import scad_export
 
 # Export key visualization function at package level
 from .visualization import show_magnets_plotly
+from .scad_export import export_to_scad, quick_export
 
 __all__ = [
     'field_calculator',
@@ -39,5 +42,8 @@ __all__ = [
     'optimizer',
     'calibration',
     'visualization',
+    'scad_export',
     'show_magnets_plotly',
+    'export_to_scad',
+    'quick_export',
 ]
