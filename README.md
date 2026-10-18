@@ -2,15 +2,33 @@
 
 Optimize permanent magnet arrays using simulated annealing on GPU.
 
+## Project Structure
+
+```
+Magnet_design/
+├── utils/                       # Shared utilities
+│   ├── field_calculator.py      # GPU magnetic field calculation
+│   ├── field_validation.py      # Magpylib-based validation
+│   └── visualize_configuration.py  # 3D visualization
+├── ellipse_opt/                 # Elliptical bore optimization
+│   ├── generator.py             # Magnet placement & reflection
+│   ├── optimizer.py             # Simulated annealing engine
+│   ├── calibration.py           # SA auto-calibration
+│   ├── scad_export.py           # Export to OpenSCAD
+│   └── ...
+├── cylindrical_opt/             # Cylindrical bore optimization
+│   └── ...                      # Same modules as ellipse_opt
+├── precompute/                  # Field precomputation notebooks
+├── ellipse_optimization_usage.ipynb
+├── cylindrical_optimization_usage.ipynb
+└── visualize_checkpoint.ipynb
+```
+
 ## Why Simulated Annealing
 
 The choice of optimizer matters as much as the speed of each evaluation. Navigating a rugged solution space requires covering the space broadly as well as quickly.
 
-A perturbation that moves many magnets simultaneously changes the field everywhere, while a perturbation that moves only one parameter changes the field only slightly. How far each step moves a parameter through the design space shapes what the search can find.
-
-Genetic algorithms have been common for magnet design. They explore the design space by recombining parameters of two parent configurations, and how far each new configuration moves from the parents depends on the operators. Those operators may not deliver the small single-parameter changes that homogeneity tuning needs late in a run.
-
-Simulated annealing allows fine control over perturbation size - large steps early for exploration, small steps late for refinement.
+Simulated annealing allows fine control over perturbation size - large steps early for exploration, small steps late for refinement. This is critical for magnet homogeneity tuning.
 
 ## Install
 
@@ -32,9 +50,12 @@ Requires Python 3.8+ and NVIDIA GPU with CUDA. See `INSTALL.txt` for details.
    - Elliptical bore: `ellipse_optimization_usage.ipynb`
    - Cylindrical bore: `cylindrical_optimization_usage.ipynb`
 
-3. **View results**
-   - Saved to `*_design_*.npz`
-   - 3D viewer shows magnet arrangement
+3. **Export for manufacturing**
+   ```python
+   from ellipse_opt import scad_export
+   scad_export.export_to_scad('design.npz', geometry_params={...})
+   ```
+   Opens in OpenSCAD: `view_mode="all"` for assembly, `"single_layer"` for STL export.
 
 ## 3D Viewer
 
@@ -45,16 +66,29 @@ visualization.show_magnets_plotly(config, magnet_size)
 
 Magpylib (optional):
 ```python
-import visualize_configuration as VS
+from utils import visualize_configuration as VS
 VS.rad_halbach_Design_rad(magnet_size, config).show()
 ```
 
 ## Continue from Previous Run
 
 ```python
+# Load previous result
 prev = np.load('ellipse_design_20261007.npz')
 initial_q1 = cp.asarray(prev['q1_config'])
+
+# For refinement runs, use low temperature (T0=5-10)
+USE_CALIBRATION = False
+T0_MANUAL = 5
 ```
+
+## Key Parameters
+
+| Parameter | Fresh Run | Refinement |
+|-----------|-----------|------------|
+| `USE_CALIBRATION` | `True` | `False` |
+| `T0_MANUAL` | N/A | `5-10` |
+| `exploration_scale` | `4-5` | `1-2` |
 
 ---
 Natnael Anjulo  
