@@ -86,13 +86,17 @@ def export_to_scad(npz_file, output_file=None, geometry_params=None, magnet_size
 
     # Convert to mm
     magnet_size_mm = magnet_size * 1000
-    r_inner_mm = geometry_params.get('r_min', 0.070) * 1000
-    r_outer_mm = geometry_params.get('r_max', 0.085) * 1000
+    r_min_mm = geometry_params.get('r_min', 0.070) * 1000
+    r_max_mm = geometry_params.get('r_max', 0.085) * 1000
     bolt_number = geometry_params.get('bolt_number', 8)
     bolt_diameter_mm = geometry_params.get('bolt_diameter', 0.00635) * 1000
 
     # Calculate derived values
-    bolt_rad = (r_inner_mm + r_outer_mm) / 2
+    # Add half magnet size margin so magnets at edges don't fall off
+    # (optimization places magnet centers, but physical magnets extend beyond center)
+    r_inner_mm = r_min_mm - magnet_size_mm / 2
+    r_outer_mm = r_max_mm + magnet_size_mm / 2
+    bolt_rad = (r_min_mm + r_max_mm) / 2
 
     # Write complete self-contained design file
     with open(output_file, 'w') as f:
