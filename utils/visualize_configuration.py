@@ -8,6 +8,7 @@ import numpy as np
 import cupy as cp
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+from matplotlib.patches import Ellipse
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d import art3d
 from scipy.spatial.transform import Rotation as R
@@ -94,13 +95,21 @@ def calculate_field_in_plane(config, r_max, plane, z_value, n_points, z_min, z_m
 
 
 def visualize_configuration(config, n_magnets, z_min, z_max, r_min, vmax_field, magnet_size,
-                           sample_points, sphere_radius, Precalc_Bxyz_value, Ref_grid, step_size):
+                           sample_points, sphere_radius, Precalc_Bxyz_value, Ref_grid, step_size,
+                           ry=None):
     """
     Visualize magnet configuration and resulting magnetic fields with 2D field magnitude planes.
+
+    Parameters:
+        r_min: X-axis radius (rx for ellipse)
+        ry: Y-axis radius for ellipse. If None, uses r_min (circular)
     """
+    rx = r_min
+    if ry is None:
+        ry = rx
     print("Visualizing configuration...")
-    fig = plt.figure(figsize=(9, 8))
-    gs = gridspec.GridSpec(3, 2, height_ratios=[1, 1, 1], width_ratios=[1, 1])
+    fig = plt.figure(figsize=(10, 8))
+    gs = gridspec.GridSpec(3, 2, height_ratios=[1, 1, 1], width_ratios=[1.2, 1], wspace=0.2, hspace=0.3)
 
     # Get magnet positions from cylindrical config [z, r, theta, phi]
     config_np = np.asarray(config).reshape(-1, 4)
@@ -206,47 +215,60 @@ def visualize_configuration(config, n_magnets, z_min, z_max, r_min, vmax_field, 
 
     vmin_field = 0
 
+    # FOV based on max radius - use unified range for all planes
+    r_max_fov = max(rx, ry)
+    fov = r_max_fov * 1.2
+    z_extent = z_max * 1.2
+    unified_range = max(fov, z_extent)
+
     # XY plane at z=0
     print("Calculating and plotting XY plane field...")
-    X_xy, Y_xy, B_xy = calculate_field_in_plane(config, r_min, 'xy', 0, 50, z_min, z_max,
+    X_xy, Y_xy, B_xy = calculate_field_in_plane(config, r_max_fov, 'xy', 0, 50, z_min, z_max,
                                                  Precalc_Bxyz_value, Ref_grid, step_size)
     ax_xy = fig.add_subplot(gs[0, 1])
     im_xy = ax_xy.pcolormesh(X_xy, Y_xy, B_xy, cmap='viridis', shading='auto', vmin=vmin_field, vmax=vmax_field)
-    plt.colorbar(im_xy, ax=ax_xy, label='Field Magnitude [mT]')
-    circle = plt.Circle((0, 0), r_min, fill=False, edgecolor='r', linestyle='-')
-    ax_xy.add_patch(circle)
+    plt.colorbar(im_xy, ax=ax_xy, label='|B| [mT]')
+    ellipse = Ellipse((0, 0), 2*rx, 2*ry, fill=False, edgecolor='r', linestyle='-')
+    ax_xy.add_patch(ellipse)
     ax_xy.set_xlabel('X [m]')
     ax_xy.set_ylabel('Y [m]')
     ax_xy.set_title('Field Magnitude in XY Plane (z=0)')
+    ax_xy.set_xlim(-unified_range, unified_range)
+    ax_xy.set_ylim(-unified_range, unified_range)
     ax_xy.set_aspect('equal')
 
     # XZ plane at y=0
     print("Calculating and plotting XZ plane field...")
-    X_xz, Z_xz, B_xz = calculate_field_in_plane(config, r_min, 'xz', 0, 50, z_min, z_max,
+    X_xz, Z_xz, B_xz = calculate_field_in_plane(config, r_max_fov, 'xz', 0, 50, z_min, z_max,
                                                  Precalc_Bxyz_value, Ref_grid, step_size)
     ax_xz = fig.add_subplot(gs[1, 1])
     im_xz = ax_xz.pcolormesh(X_xz, Z_xz, B_xz, cmap='viridis', shading='auto', vmin=vmin_field, vmax=vmax_field)
-    plt.colorbar(im_xz, ax=ax_xz, label='Field Magnitude [mT]')
-    ax_xz.plot([r_min, r_min], [z_min, z_max], 'r-')
-    ax_xz.plot([-r_min, -r_min], [z_min, z_max], 'r-')
+    plt.colorbar(im_xz, ax=ax_xz, label='|B| [mT]')
+    ax_xz.plot([rx, rx], [z_min, z_max], 'r-')
+    ax_xz.plot([-rx, -rx], [z_min, z_max], 'r-')
     ax_xz.set_xlabel('X [m]')
     ax_xz.set_ylabel('Z [m]')
     ax_xz.set_title('Field Magnitude in XZ Plane (y=0)')
+    ax_xz.set_xlim(-unified_range, unified_range)
+    ax_xz.set_ylim(-unified_range, unified_range)
+    ax_xz.set_aspect('equal')
 
     # YZ plane at x=0
     print("Calculating and plotting YZ plane field...")
-    Y_yz, Z_yz, B_yz = calculate_field_in_plane(config, r_min, 'yz', 0, 50, z_min, z_max,
+    Y_yz, Z_yz, B_yz = calculate_field_in_plane(config, r_max_fov, 'yz', 0, 50, z_min, z_max,
                                                  Precalc_Bxyz_value, Ref_grid, step_size)
     ax_yz = fig.add_subplot(gs[2, 1])
     im_yz = ax_yz.pcolormesh(Y_yz, Z_yz, B_yz, cmap='viridis', shading='auto', vmin=vmin_field, vmax=vmax_field)
-    plt.colorbar(im_yz, ax=ax_yz, label='Field Magnitude [mT]')
-    ax_yz.plot([r_min, r_min], [z_min, z_max], 'r-')
-    ax_yz.plot([-r_min, -r_min], [z_min, z_max], 'r-')
+    plt.colorbar(im_yz, ax=ax_yz, label='|B| [mT]')
+    ax_yz.plot([ry, ry], [z_min, z_max], 'r-')
+    ax_yz.plot([-ry, -ry], [z_min, z_max], 'r-')
     ax_yz.set_xlabel('Y [m]')
     ax_yz.set_ylabel('Z [m]')
     ax_yz.set_title('Field Magnitude in YZ Plane (x=0)')
+    ax_yz.set_xlim(-unified_range, unified_range)
+    ax_yz.set_ylim(-unified_range, unified_range)
+    ax_yz.set_aspect('equal')
 
-    plt.tight_layout()
     print("Finished creating visualization. Displaying plot...")
     plt.show()
 
