@@ -108,8 +108,8 @@ def visualize_configuration(config, n_magnets, z_min, z_max, r_min, vmax_field, 
     if ry is None:
         ry = rx
     print("Visualizing configuration...")
-    fig = plt.figure(figsize=(10, 8))
-    gs = gridspec.GridSpec(3, 2, height_ratios=[1, 1, 1], width_ratios=[1.2, 1], wspace=0.2, hspace=0.3)
+    fig = plt.figure(figsize=(10, 10))
+    gs = gridspec.GridSpec(3, 2, height_ratios=[1, 1, 1], width_ratios=[1.2, 1], wspace=0.2, hspace=0.4)
 
     # Get magnet positions from cylindrical config [z, r, theta, phi]
     config_np = np.asarray(config).reshape(-1, 4)
